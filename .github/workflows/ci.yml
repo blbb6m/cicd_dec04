@@ -2,15 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: ["development"]
   pull_request:
+    branches: ["development"]
 
 jobs:
-  run-tests:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout code
@@ -23,38 +21,12 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-      - name: Run basic tests
-        run: pytest -q
-
-      - name: Run tests with coverage
+      - name: Run tests + coverage (term/xml/html)
         run: |
-          pytest -q \
-            --cov=. \
-            --cov-report=term \
-            --cov-report=xml \
-            --cov-report=html \
+          python -m pytest -q --cov=. --cov-report=term --cov-report=xml --cov-report=html
 
-      - name: Prepare the webpage
-        run: |
-          mkdir sites
-          mv htmlcov sites/
-          mv coverage.xml sites/
-
-      - name: upload the artifacts
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./sites
-
-  Deploy:
-    needs: run-tests
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: deploy the artifacts
-        uses: actions/deploy-pages@v4
-    
     
